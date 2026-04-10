@@ -80,13 +80,11 @@ def extract_polygons(geometry):
     polygons = []
 
     if geometry["type"] == "Polygon":
-        for ring in geometry["coordinates"]:
-            polygons.append(ring)
+        polygons.append(geometry["coordinates"][0])
 
     elif geometry["type"] == "MultiPolygon":
         for polygon in geometry["coordinates"]:
-            for ring in polygon:
-                polygons.append(ring)
+            polygons.append(polygon[0])
 
     return polygons
 
@@ -110,13 +108,13 @@ def plot_map(year_data: pd.DataFrame, geojson_data: dict, year: int):
             patches.append(Polygon(coords, closed=True))
             patch_values.append(value)
 
-    fig, ax = plt.subplots(figsize=(12, 7))
+    fig, ax = plt.subplots(figsize=(13, 6))
 
     collection = PatchCollection(
         patches,
         cmap="viridis",
         edgecolor="white",
-        linewidth=1.0
+        linewidth=1.2
     )
     collection.set_array(pd.Series(patch_values).to_numpy())
 
@@ -125,51 +123,58 @@ def plot_map(year_data: pd.DataFrame, geojson_data: dict, year: int):
     ax.set_aspect("equal")
     ax.axis("off")
 
-    cbar = fig.colorbar(collection, ax=ax, shrink=0.75, pad=0.02)
+    cbar = fig.colorbar(collection, ax=ax, shrink=0.8, pad=0.02)
     cbar.set_label("Loomulik iive", fontsize=11)
-    cbar.ax.tick_params(labelsize=10)
+    cbar.ax.tick_params(labelsize=9)
+    cbar.outline.set_visible(False)
 
-    fig.suptitle(
+    ax.set_title(
         f"Loomulik iive maakonniti aastal {year}",
-        fontsize=20,
-        y=0.95
+        fontsize=22,
+        pad=18
     )
 
     fig.patch.set_facecolor("white")
     ax.set_facecolor("white")
-
     plt.tight_layout()
+
     return fig
 
 
 def main():
     st.set_page_config(
         page_title="Loomulik iive maakonniti",
-        layout="centered"
+        layout="wide"
     )
 
     st.title("Loomulik iive maakonniti")
-    st.markdown("Vali aasta ja vaata, kuidas loomulik iive maakondade lõikes muutub.")
+    st.write("Vali aasta ja vaata, kuidas loomulik iive maakondade lõikes muutub.")
 
     df = import_data()
     geojson_data = import_geojson()
 
     years = sorted(df["Aasta"].unique())
-    selected_year = st.sidebar.selectbox("Vali aasta", years, index=len(years) - 1)
+
+    with st.sidebar:
+        st.header("Filtrid")
+        selected_year = st.selectbox("Vali aasta", years, index=len(years) - 1)
 
     year_data = get_data_for_year(df, selected_year)
-    fig = plot_map(year_data, geojson_data, selected_year)
-    st.pyplot(fig, use_container_width=True)
 
-    with st.expander("Näita andmeid"):
-        st.dataframe(
-            year_data[
-                ["Maakond", "Aasta", "Mehed Loomulik iive", "Naised Loomulik iive", "Loomulik iive"]
-            ]
-            .sort_values("Loomulik iive", ascending=False)
-            .reset_index(drop=True),
-            use_container_width=True
-        )
+    col1, col2, col3 = st.columns([1, 8, 1])
+    with col2:
+        fig = plot_map(year_data, geojson_data, selected_year)
+        st.pyplot(fig, use_container_width=True)
+
+        with st.expander("Näita andmeid"):
+            st.dataframe(
+                year_data[
+                    ["Maakond", "Aasta", "Mehed Loomulik iive", "Naised Loomulik iive", "Loomulik iive"]
+                ]
+                .sort_values("Loomulik iive", ascending=False)
+                .reset_index(drop=True),
+                use_container_width=True
+            )
 
 
 if __name__ == "__main__":

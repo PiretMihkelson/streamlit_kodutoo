@@ -6,10 +6,9 @@ import streamlit as st
 import matplotlib.pyplot as plt
 from matplotlib.patches import Polygon
 from matplotlib.collections import PatchCollection
-from matplotlib import colors
 
 STATISTIKAAMETI_API_URL = "https://andmed.stat.ee/api/v1/et/stat/RV032"
-GEOJSON_FILE = "maakonnad.json"  # või "maakonnad.geojson" - täpselt nagu fail repos
+GEOJSON_FILE = "maakonnad.json"
 
 JSON_PAYLOAD_STR = """{
   "query": [
@@ -111,13 +110,13 @@ def plot_map(year_data: pd.DataFrame, geojson_data: dict, year: int):
             patches.append(Polygon(coords, closed=True))
             patch_values.append(value)
 
-    fig, ax = plt.subplots(figsize=(10, 8))
+    fig, ax = plt.subplots(figsize=(12, 7))
 
     collection = PatchCollection(
         patches,
         cmap="viridis",
-        edgecolor="black",
-        linewidth=0.8
+        edgecolor="white",
+        linewidth=1.0
     )
     collection.set_array(pd.Series(patch_values).to_numpy())
 
@@ -125,20 +124,32 @@ def plot_map(year_data: pd.DataFrame, geojson_data: dict, year: int):
     ax.autoscale_view()
     ax.set_aspect("equal")
     ax.axis("off")
-    ax.set_title(f"Loomulik iive maakonniti aastal {year}", fontsize=16, pad=20)
 
-    cbar = fig.colorbar(collection, ax=ax, shrink=0.7)
-    cbar.set_label("Loomulik iive")
+    cbar = fig.colorbar(collection, ax=ax, shrink=0.75, pad=0.02)
+    cbar.set_label("Loomulik iive", fontsize=11)
+    cbar.ax.tick_params(labelsize=10)
+
+    fig.suptitle(
+        f"Loomulik iive maakonniti aastal {year}",
+        fontsize=20,
+        y=0.95
+    )
+
+    fig.patch.set_facecolor("white")
+    ax.set_facecolor("white")
 
     plt.tight_layout()
     return fig
 
 
 def main():
-    st.set_page_config(page_title="Loomulik iive maakonniti", layout="wide")
+    st.set_page_config(
+        page_title="Loomulik iive maakonniti",
+        layout="centered"
+    )
 
     st.title("Loomulik iive maakonniti")
-    st.write("Vali aasta ja vaata, kuidas loomulik iive maakondade lõikes muutub.")
+    st.markdown("Vali aasta ja vaata, kuidas loomulik iive maakondade lõikes muutub.")
 
     df = import_data()
     geojson_data = import_geojson()
@@ -148,12 +159,14 @@ def main():
 
     year_data = get_data_for_year(df, selected_year)
     fig = plot_map(year_data, geojson_data, selected_year)
-    st.pyplot(fig)
+    st.pyplot(fig, use_container_width=True)
 
     with st.expander("Näita andmeid"):
         st.dataframe(
-            year_data[["Maakond", "Aasta", "Mehed Loomulik iive", "Naised Loomulik iive", "Loomulik iive"]]
-            .sort_values("Maakond")
+            year_data[
+                ["Maakond", "Aasta", "Mehed Loomulik iive", "Naised Loomulik iive", "Loomulik iive"]
+            ]
+            .sort_values("Loomulik iive", ascending=False)
             .reset_index(drop=True),
             use_container_width=True
         )

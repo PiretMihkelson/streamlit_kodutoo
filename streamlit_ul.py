@@ -8,7 +8,7 @@ from matplotlib.patches import Polygon
 from matplotlib.collections import PatchCollection
 
 STATISTIKAAMETI_API_URL = "https://andmed.stat.ee/api/v1/et/stat/RV032"
-GEOJSON_FILE = "maakonnad.json"
+GEOJSON_FILE = "maakonnad.json"   # kui fail on .geojson, muuda see vastavalt
 
 JSON_PAYLOAD_STR = """{
   "query": [
@@ -17,8 +17,16 @@ JSON_PAYLOAD_STR = """{
       "selection": {
         "filter": "item",
         "values": [
-          "2014","2015","2016","2017","2018",
-          "2019","2020","2021","2022","2023"
+          "2014",
+          "2015",
+          "2016",
+          "2017",
+          "2018",
+          "2019",
+          "2020",
+          "2021",
+          "2022",
+          "2023"
         ]
       }
     },
@@ -27,9 +35,21 @@ JSON_PAYLOAD_STR = """{
       "selection": {
         "filter": "item",
         "values": [
-          "39","44","49","51","57",
-          "59","65","67","70","74",
-          "78","82","84","86","37"
+          "39",
+          "44",
+          "49",
+          "51",
+          "57",
+          "59",
+          "65",
+          "67",
+          "70",
+          "74",
+          "78",
+          "82",
+          "84",
+          "86",
+          "37"
         ]
       }
     },
@@ -37,7 +57,10 @@ JSON_PAYLOAD_STR = """{
       "code": "Sugu",
       "selection": {
         "filter": "item",
-        "values": ["2", "3"]
+        "values": [
+          "2",
+          "3"
+        ]
       }
     }
   ],
@@ -110,13 +133,13 @@ def plot_map(year_data: pd.DataFrame, geojson_data: dict, year: int):
             patches.append(Polygon(coords, closed=True))
             patch_values.append(value)
 
-    fig, ax = plt.subplots(figsize=(10, 8))
+    fig, ax = plt.subplots(figsize=(12, 8))
 
     collection = PatchCollection(
         patches,
         cmap="viridis",
-        edgecolor="black",
-        linewidth=0.8
+        edgecolor="none",
+        linewidth=0.3
     )
     collection.set_array(pd.Series(patch_values).to_numpy())
 
@@ -124,9 +147,9 @@ def plot_map(year_data: pd.DataFrame, geojson_data: dict, year: int):
     ax.autoscale_view()
     ax.set_aspect("equal")
     ax.axis("off")
-    ax.set_title(f"Loomulik iive maakonniti aastal {year}", fontsize=16, pad=20)
+    ax.set_title(f"Loomulik iive maakonniti aastal {year}", fontsize=16, pad=12)
 
-    cbar = fig.colorbar(collection, ax=ax, shrink=0.7)
+    cbar = fig.colorbar(collection, ax=ax, shrink=0.82, pad=0.02)
     cbar.set_label("Loomulik iive")
 
     plt.tight_layout()
@@ -151,7 +174,9 @@ def main():
 
     with st.expander("Näita andmeid"):
         st.dataframe(
-            year_data[["Maakond", "Aasta", "Mehed Loomulik iive", "Naised Loomulik iive", "Loomulik iive"]]
+            year_data[
+                ["Maakond", "Aasta", "Mehed Loomulik iive", "Naised Loomulik iive", "Loomulik iive"]
+            ]
             .sort_values("Maakond")
             .reset_index(drop=True),
             use_container_width=True

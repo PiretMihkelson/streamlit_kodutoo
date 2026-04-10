@@ -80,13 +80,16 @@ def extract_polygons(geometry):
     polygons = []
 
     if geometry["type"] == "Polygon":
-        polygons.append(geometry["coordinates"][0])
+        for ring in geometry["coordinates"]:
+            polygons.append(ring)
 
     elif geometry["type"] == "MultiPolygon":
         for polygon in geometry["coordinates"]:
-            polygons.append(polygon[0])
+            for ring in polygon:
+                polygons.append(ring)
 
     return polygons
+
 
 
 def plot_map(year_data: pd.DataFrame, geojson_data: dict, year: int):
@@ -108,7 +111,7 @@ def plot_map(year_data: pd.DataFrame, geojson_data: dict, year: int):
             patches.append(Polygon(coords, closed=True))
             patch_values.append(value)
 
-    fig, ax = plt.subplots(figsize=(10, 7.5))
+    fig, ax = plt.subplots(figsize=(11, 8))
 
     collection = PatchCollection(
         patches,

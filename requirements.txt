@@ -3,6 +3,6 @@ pandas
 requests
 matplotlib
 geopandas==0.13.2
-fiona
-pyproj
-shapely
+fiona==1.9.4.post1
+pyproj==3.6.1
+shapely==2.0.2

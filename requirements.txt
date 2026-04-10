@@ -2,4 +2,5 @@ streamlit
 pandas
 requests
 matplotlib
-geopandas==0.13.2
+plotly
+openpyxl

@@ -108,30 +108,41 @@ def plot_map(year_data: pd.DataFrame, geojson_data: dict, year: int):
             patches.append(Polygon(coords, closed=True))
             patch_values.append(value)
 
-    fig, ax = plt.subplots(figsize=(13, 6))
+    fig, ax = plt.subplots(figsize=(10, 7.5))
 
     collection = PatchCollection(
         patches,
         cmap="viridis",
-        edgecolor="white",
-        linewidth=1.2
+        edgecolor="lightgray",
+        linewidth=0.8
     )
     collection.set_array(pd.Series(patch_values).to_numpy())
 
     ax.add_collection(collection)
-    ax.autoscale_view()
-    ax.set_aspect("equal")
+    ax.set_aspect("equal", adjustable="datalim")
     ax.axis("off")
 
-    cbar = fig.colorbar(collection, ax=ax, shrink=0.8, pad=0.02)
+    ax.relim()
+    ax.autoscale_view()
+
+    xmin, xmax = ax.get_xlim()
+    ymin, ymax = ax.get_ylim()
+
+    xpad = (xmax - xmin) * 0.08
+    ypad = (ymax - ymin) * 0.08
+
+    ax.set_xlim(xmin - xpad, xmax + xpad)
+    ax.set_ylim(ymin - ypad, ymax + ypad)
+
+    cbar = fig.colorbar(collection, ax=ax, shrink=0.78, pad=0.02)
     cbar.set_label("Loomulik iive", fontsize=11)
-    cbar.ax.tick_params(labelsize=9)
-    cbar.outline.set_visible(False)
+    cbar.ax.tick_params(labelsize=10)
 
     ax.set_title(
         f"Loomulik iive maakonniti aastal {year}",
-        fontsize=22,
-        pad=18
+        fontsize=18,
+        pad=16
+      
     )
 
     fig.patch.set_facecolor("white")
@@ -144,7 +155,7 @@ def plot_map(year_data: pd.DataFrame, geojson_data: dict, year: int):
 def main():
     st.set_page_config(
         page_title="Loomulik iive maakonniti",
-        layout="wide"
+        layout="centered"
     )
 
     st.title("Loomulik iive maakonniti")
@@ -164,7 +175,7 @@ def main():
     col1, col2, col3 = st.columns([1, 8, 1])
     with col2:
         fig = plot_map(year_data, geojson_data, selected_year)
-        st.pyplot(fig, use_container_width=True)
+        st.pyplot(fig)
 
         with st.expander("Näita andmeid"):
             st.dataframe(
